@@ -3,63 +3,63 @@
 
 volatile gpio_reg *gpio_arr = (void *) GPIO_BASE_ADDR;
 
-static uint32_t parameterValidWrite(uint8_t gpio, uint8_t ch, uint8_t pin, uint32_t value) {
+static status_e parameterValidWrite(gpio_lpc2901_e gpio, gpio_accessType_e ch, uint8_t pin, uint32_t value) {
 
-    if( gpio > GPIO_NUM - 1) {
+    if(gpio >= gpio_all_e) {
         printf("Invalid GPIO choice.\n");
-        return FAILURE;
+        return error_e;
     }
 
-    if( ch != PIN || ch != PORT ) {
+    if( ch != pin_e || ch != port_e ) {
         printf("Invalid choice.\n");
-        return FAILURE;
+        return error_e;
     }
 
-    if( (ch == PIN) && (pin > GPIO_PINS_NUM - 1)) {
+    if( (ch == pin_e) && (pin > GPIO_PINS_NUM - 1)) {
         printf("Invalid pin number.\n");
-        return FAILURE;
+        return error_e;
     }
 
-    if( (ch == PIN) && (value != 0 || value != 1)) {
+    if( (ch == pin_e) && (value != 0 || value != 1)) {
         printf("Invalid value to be written for a pin. Write 1 or 0.\n");
-        return FAILURE;
-    }     
+        return error_e;
+    }  
 }
 
-static uint32_t parameterValidRead(uint8_t gpio, uint8_t ch, uint8_t pin) {
+static status_e parameterValidRead(gpio_lpc2901_e gpio, gpio_accessType_e ch, uint8_t pin) {
 
-    if( gpio > GPIO_NUM - 1) {
+    if( gpio >= gpio_all_e) {
         printf("Invalid GPIO choice.\n");
-        return FAILURE;
+        return error_e;
     }
 
-    if( ch != PIN || ch != PORT ) {
+    if( ch != pin_e || ch != port_e ) {
         printf("Invalid choice.\n");
-        return FAILURE;
+        return error_e;
     }
 
-    if( (ch == PIN) && (pin > GPIO_PINS_NUM - 1)) {
+    if( (ch == pin_e) && (pin > GPIO_PINS_NUM - 1)) {
         printf("Invalid pin number.\n");
-        return FAILURE;
+        return error_e;
     }
 }
 
-uint32_t gpioWrite(uint8_t gpio, uint8_t ch, uint8_t pin, uint32_t value){
+status_e gpioWrite(gpio_lpc2901_e gpio, gpio_accessType_e ch, uint8_t pin, uint32_t value){
 
     /*Check if the input parameters are permissible as per LPC2901 specifications*/
    if(!parameterValidWrite(gpio, ch, pin, value))
-       return FAILURE;
+       return error_e;
 
     switch (ch)
     {
-    case PORT:
+    case port_e:
         //Set all pins on that gpio as output pins
         gpio_arr[gpio].dr_reg = 0xffff;
         //Write the value to the gpio port
         gpio_arr[gpio].or_reg = value;
         break;
     
-    case PIN:
+    case pin_e:
         //Set the particular pin as an output pin
         gpio_arr[gpio].dr_reg |= (1<<pin);
         
@@ -71,40 +71,40 @@ uint32_t gpioWrite(uint8_t gpio, uint8_t ch, uint8_t pin, uint32_t value){
         break;
     
     default:
-        return FAILURE;
+        return error_e;
         break;
     }
 
-    return SUCCESS;
+    return success_e;
 }
 
-uint32_t gpioRead(uint8_t gpio, uint8_t ch, uint8_t pin, uint32_t value){
+status_e gpioRead(gpio_lpc2901_e gpio, gpio_accessType_e ch, uint8_t pin, uint32_t value){
 
     /*Check if the input parameters are valid  as per LPC2901 specifications*/
    if(!parameterValidRead(gpio, ch, pin))
-       return FAILURE;
+       return error_e;
 
     switch (ch)
     {
-    case PORT:
+    case port_e:
         //Set all pins on that GPIO as input pins
         gpio_arr[gpio].dr_reg = 0x0;
         //Read the input level on the GPIO port into the variable
         value = gpio_arr[gpio].pins_reg;
         break;
     
-    case PIN:
+    case pin_e:
         //Set the particular pin as an input pin
         gpio_arr[gpio].dr_reg &= ~(1<<pin);
         //Read the input level on the pin into the variable
         value = ((gpio_arr[gpio].pins_reg >> pin) & 1);  
 
     default:
-        return FAILURE;
+        return error_e;
         break;
     }
 
-    return SUCCESS;
+    return success_e;
 }
 
 void testGPIO(void)
@@ -112,7 +112,7 @@ void testGPIO(void)
     /*Test writing to a pin
     **Write 1 to pin 10 of GPIO0
     */
-    if(gpioWrite(GPIO0, PIN, 10, 1))
+    if(gpioWrite(gpio0_e, pin_e, 10ul, 1ul))
         printf("Wrote to  a pin successfully\n");
     else
         printf("Failure in writing to a pin\n");
@@ -120,7 +120,7 @@ void testGPIO(void)
     /*Test writing to an entire GPIO
     **Write 0x0123abcd to entire GPIO1 port
     */
-    if(gpioWrite(GPIO1, PORT, 0, 0x0123abcd))
+    if(gpioWrite(gpio1_e, port_e, 0, 0x0123abcdul))
         printf("Wrote to an entire port successfully\n");
     else
         printf("Failure in writing to an entire port\n");
@@ -130,7 +130,7 @@ void testGPIO(void)
     /*Test reading from a GPIO pin
     **Read input level on pin 11 of GPIO2
     */
-    if(gpioRead(GPIO2, PIN, 11, value))
+    if(gpioRead(gpio2_e, pin_e, 11ul, value))
         printf("Read %08x from a pin successfully\n", (unsigned int) value);
     else
         printf("Failure in reading from a pin\n");
@@ -138,8 +138,8 @@ void testGPIO(void)
     /*Test reading to an entire GPIO
     **Read the entire GPIO3 port
     */
-    if(gpioRead(GPIO3, PORT, 0, value))
-        printf("Read %08x from an entire GPIO port successfully\n", (unsigned int)value);
+    if(gpioRead(gpio3_e, port_e, 0ul, value))
+        printf("Read %08x from an entire GPIO port successfully\n", (unsigned int) value);
     else
         printf("Failure in reading from an entire port\n");
 
