@@ -78,7 +78,7 @@ status_e gpioWrite(gpio_lpc2901_e gpio, gpio_accessType_e ch, uint8_t pin, uint3
     return success_e;
 }
 
-status_e gpioRead(gpio_lpc2901_e gpio, gpio_accessType_e ch, uint8_t pin, uint32_t value){
+status_e gpioRead(gpio_lpc2901_e gpio, gpio_accessType_e ch, uint8_t pin, uint32_t* value){
 
     /*Check if the input parameters are valid  as per LPC2901 specifications*/
    if(!parameterValidRead(gpio, ch, pin))
@@ -90,14 +90,14 @@ status_e gpioRead(gpio_lpc2901_e gpio, gpio_accessType_e ch, uint8_t pin, uint32
         //Set all pins on that GPIO as input pins
         gpio_arr[gpio].dr_reg = 0x0;
         //Read the input level on the GPIO port into the variable
-        value = gpio_arr[gpio].pins_reg;
+        *value = gpio_arr[gpio].pins_reg;
         break;
     
     case pin_e:
         //Set the particular pin as an input pin
         gpio_arr[gpio].dr_reg &= ~(1<<pin);
         //Read the input level on the pin into the variable
-        value = ((gpio_arr[gpio].pins_reg >> pin) & 1);  
+        *value = ((gpio_arr[gpio].pins_reg >> pin) & 1ul);  
 
     default:
         return error_e;
@@ -120,7 +120,7 @@ void testGPIO(void)
     /*Test writing to an entire GPIO
     **Write 0x0123abcd to entire GPIO1 port
     */
-    if(gpioWrite(gpio1_e, port_e, 0, 0x0123abcdul))
+    if(gpioWrite(gpio1_e, port_e, 0ul, 0x0123abcdul))
         printf("Wrote to an entire port successfully\n");
     else
         printf("Failure in writing to an entire port\n");
@@ -130,7 +130,7 @@ void testGPIO(void)
     /*Test reading from a GPIO pin
     **Read input level on pin 11 of GPIO2
     */
-    if(gpioRead(gpio2_e, pin_e, 11ul, value))
+    if(gpioRead(gpio2_e, pin_e, 11ul, &value))
         printf("Read %08x from a pin successfully\n", (unsigned int) value);
     else
         printf("Failure in reading from a pin\n");
@@ -138,7 +138,7 @@ void testGPIO(void)
     /*Test reading to an entire GPIO
     **Read the entire GPIO3 port
     */
-    if(gpioRead(gpio3_e, port_e, 0ul, value))
+    if(gpioRead(gpio3_e, port_e, 0ul, &value))
         printf("Read %08x from an entire GPIO port successfully\n", (unsigned int) value);
     else
         printf("Failure in reading from an entire port\n");
