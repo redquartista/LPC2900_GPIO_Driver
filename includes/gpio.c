@@ -10,7 +10,7 @@ static status_e parameterValidWrite(gpio_lpc2901_e gpio, gpio_accessType_e ch, u
         return error_e;
     }
 
-    if( ch != pin_e || ch != port_e ) {
+    if( ch != pin_e && ch != port_e ) {
         printf("Invalid choice.\n");
         return error_e;
     }
@@ -20,10 +20,12 @@ static status_e parameterValidWrite(gpio_lpc2901_e gpio, gpio_accessType_e ch, u
         return error_e;
     }
 
-    if( (ch == pin_e) && (value != 0 || value != 1)) {
+    if( (ch == pin_e) && (value != 0 && value != 1)) {
         printf("Invalid value to be written for a pin. Write 1 or 0.\n");
         return error_e;
     }  
+
+    return success_e;
 }
 
 static status_e parameterValidRead(gpio_lpc2901_e gpio, gpio_accessType_e ch, uint8_t pin) {
@@ -33,7 +35,7 @@ static status_e parameterValidRead(gpio_lpc2901_e gpio, gpio_accessType_e ch, ui
         return error_e;
     }
 
-    if( ch != pin_e || ch != port_e ) {
+    if( ch != pin_e && ch != port_e ) {
         printf("Invalid choice.\n");
         return error_e;
     }
@@ -42,6 +44,8 @@ static status_e parameterValidRead(gpio_lpc2901_e gpio, gpio_accessType_e ch, ui
         printf("Invalid pin number.\n");
         return error_e;
     }
+
+    return success_e;
 }
 
 status_e gpioWrite(gpio_lpc2901_e gpio, gpio_accessType_e ch, uint8_t pin, uint32_t value){
@@ -54,7 +58,7 @@ status_e gpioWrite(gpio_lpc2901_e gpio, gpio_accessType_e ch, uint8_t pin, uint3
     {
     case port_e:
         //Set all pins on that gpio as output pins
-        gpio_arr[gpio].dr_reg = 0xffff;
+        gpio_arr[gpio].dr_reg = 0xffffffff;
         //Write the value to the gpio port
         gpio_arr[gpio].or_reg = value;
         break;
